@@ -1,21 +1,21 @@
 const {
-  listContactsDB,
-  getByIdDB,
-  addContactDB,
-  removeContactDB,
-  updateContactDB,
-  updateStatusContactDB,
+  listContacts,
+  getById,
+  addContact,
+  removeContact,
+  updateContact,
+  updateStatusContact,
 } = require("../services/contactsServices");
 
-const listContacts = async (req, res) => {
-  const contacts = await listContactsDB();
+const listContactsController = async (req, res) => {
+  const contacts = await listContacts();
   res.json({ status: "success", code: 200, payload: { contacts } });
 };
 
-const getById = async (req, res) => {
+const getByIdController = async (req, res) => {
   const contactId = req.params.contactId;
 
-  const contact = await getByIdDB(contactId);
+  const contact = await getById(contactId);
   if (!contact) {
     res.status(400).json({
       status: `Failure, we didn't find the contact width id=${contactId}`,
@@ -24,26 +24,26 @@ const getById = async (req, res) => {
   res.json({ status: "success", code: 200, payload: { contact } });
 };
 
-const addContact = async (req, res) => {
+const addContactController = async (req, res) => {
   const { name, email, phone } = req.body;
-  addContactDB({ name, email, phone });
+  addContact({ name, email, phone });
   res.json({ status: "Success" });
 };
 
-const removeContact = async (req, res) => {
+const removeContactController = async (req, res) => {
   const contactId = req.params.contactId;
-  removeContactDB(contactId);
+  removeContact(contactId);
   res.json({ status: "Success" });
 };
 
-const updateContact = async (req, res) => {
+const updateContactController = async (req, res) => {
   const contactId = req.params.contactId;
   const { name, email, phone } = req.body;
-  updateContactDB(contactId, { name, email, phone });
+  updateContact(contactId, { name, email, phone });
   res.json({ status: "Success" });
 };
 
-const updateStatusContact = async (req, res) => {
+const updateStatusContactController = async (req, res) => {
   try {
     const contactId = req.params.contactId;
 
@@ -54,8 +54,8 @@ const updateStatusContact = async (req, res) => {
         status: "missing field favorite",
       });
     }
-    await updateStatusContactDB(contactId, { favorite });
-    const contact = await getByIdDB(contactId);
+    await updateStatusContact(contactId, { favorite });
+    const contact = await getById(contactId);
 
     res.json({ status: "success", code: 200, payload: { contact } });
   } catch {
@@ -66,10 +66,10 @@ const updateStatusContact = async (req, res) => {
 };
 
 module.exports = {
-  listContacts,
-  getById,
-  addContact,
-  removeContact,
-  updateContact,
-  updateStatusContact,
+  listContactsController,
+  getByIdController,
+  addContactController,
+  removeContactController,
+  updateContactController,
+  updateStatusContactController,
 };
