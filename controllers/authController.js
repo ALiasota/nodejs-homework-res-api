@@ -2,6 +2,8 @@ const {
   registration,
   login,
   findUserByEmail,
+  currentUser,
+  changeSubscription,
 } = require("../services/authServices");
 
 const registrationController = async (req, res) => {
@@ -39,7 +41,41 @@ const loginController = async (req, res) => {
   });
 };
 
+const logoutController = (req, res) => {
+  req.user = null;
+  req.token = null;
+  res.status(201).json({
+    message: "No Content",
+  });
+};
+
+const currentUserController = async (req, res) => {
+  const { user: userId } = req;
+  const user = await currentUser(userId);
+
+  res.status(200).json({ user });
+};
+
+const changeSubscriptionController = async (req, res) => {
+  const { user: userId } = req;
+
+  const { subscription } = req.body;
+
+  if (!subscription) {
+    res.status(400).json({
+      status: "missing field subscription",
+    });
+  }
+  await changeSubscription(userId, { subscription });
+  const user = await currentUser(userId);
+
+  res.status(200).json({ user });
+};
+
 module.exports = {
   registrationController,
   loginController,
+  logoutController,
+  currentUserController,
+  changeSubscriptionController,
 };

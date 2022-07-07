@@ -1,36 +1,48 @@
 const { Contact } = require("../models/contacts");
 
-const listContacts = async () => {
-  const contacts = await Contact.find({});
-
+const listContacts = async (owner, { page, limit, favorite }) => {
+  const skip = (page - 1) * limit;
+  let contacts = [];
+  if (favorite) {
+    contacts = await Contact.find({ owner, favorite: true })
+      .select({ __v: 0 })
+      .skip(skip)
+      .limit(limit);
+  } else {
+    contacts = await Contact.find({ owner })
+      .select({ __v: 0 })
+      .skip(skip)
+      .limit(limit);
+  }
   return contacts;
 };
 
-const getById = async (contactId) => {
-  const contact = await Contact.findOne({ _id: contactId });
-  console.log(contact);
+const getById = async ({ contactId, owner }) => {
+  const contact = await Contact.findOne({ _id: contactId, owner });
   return contact;
 };
 
-const addContact = async ({ name, email, phone }) => {
-  const contact = new Contact({ name, email, phone });
+const addContact = async ({ name, email, phone, owner }) => {
+  const contact = new Contact({ name, email, phone, owner });
   await contact.save();
 };
 
-const removeContact = async (contactId) => {
-  await Contact.findByIdAndRemove({ _id: contactId });
+const removeContact = async ({ contactId, owner }) => {
+  await Contact.findByIdAndRemove({ _id: contactId, owner });
 };
 
-const updateContact = async (contactId, { name, email, phone }) => {
-  console.log(contactId);
+const updateContact = async (contactId, owner, { name, email, phone }) => {
   await Contact.findByIdAndUpdate(
-    { _id: contactId },
+    { _id: contactId, owner },
     { $set: { name, email, phone } }
   );
 };
 
-const updateStatusContact = async (contactId, { favorite }) => {
-  await Contact.findByIdAndUpdate({ _id: contactId }, { $set: { favorite } });
+const updateStatusContact = async (contactId, owner, { favorite }) => {
+  await Contact.findByIdAndUpdate(
+    { _id: contactId, owner },
+    { $set: { favorite } }
+  );
 };
 
 module.exports = {

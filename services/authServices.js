@@ -14,7 +14,7 @@ const login = async ({ email, password }) => {
   if (!user || !(await bcrypt.compare(password, user.password))) {
     return null;
   }
-  const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
   return token;
 };
 
@@ -23,8 +23,24 @@ const findUserByEmail = async (email) => {
   return user;
 };
 
+const currentUser = async (userId) => {
+  const user = await User.findOne({ _id: userId }).select({
+    email: 1,
+    subscription: 1,
+    _id: 0,
+  });
+
+  return user;
+};
+
+const changeSubscription = async (userId, { subscription }) => {
+  await User.findByIdAndUpdate({ _id: userId }, { $set: { subscription } });
+};
+
 module.exports = {
   registration,
   login,
   findUserByEmail,
+  currentUser,
+  changeSubscription,
 };

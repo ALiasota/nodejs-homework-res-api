@@ -6,6 +6,8 @@ const {
   addContactValidation,
 } = require("../../middlewares/validationMiddleware");
 
+const { authValidation } = require("../../middlewares/authMiddleware");
+
 const {
   listContactsController,
   getByIdController,
@@ -14,6 +16,8 @@ const {
   updateContactController,
   updateStatusContactController,
 } = require("../../controllers/contactsController");
+
+router.use(authValidation);
 
 router.get("/", asyncWrapper(listContactsController));
 

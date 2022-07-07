@@ -25,6 +25,7 @@ const addUserValidation = (req, res, next) => {
       .pattern(new RegExp("^[a-zA-Z0-9]{3,30}$"))
       .required(),
     email: Joi.string().email().required(),
+    subscription: Joi.string().valid("starter", "pro", "business"),
   });
   const valid = schema.validate(req.body);
 
@@ -36,4 +37,22 @@ const addUserValidation = (req, res, next) => {
   next();
 };
 
-module.exports = { addContactValidation, addUserValidation };
+const ChangeUserValidation = (req, res, next) => {
+  const schema = Joi.object({
+    subscription: Joi.string().valid("starter", "pro", "business"),
+  });
+  const valid = schema.validate(req.body);
+
+  if (valid.error) {
+    return res.status(400).json({
+      status: valid.error.details,
+    });
+  }
+  next();
+};
+
+module.exports = {
+  addContactValidation,
+  addUserValidation,
+  ChangeUserValidation,
+};
