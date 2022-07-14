@@ -1,9 +1,9 @@
 const express = require("express");
-const multer = require("multer");
 const path = require("path");
 const router = express.Router();
-const { asyncWrapper } = require("../../helpers/apiHelpers");
 
-router.get("/:avatar", asyncWrapper());
+const storagePath = path.resolve("./public/avatars");
+
+router.use("/", express.static(storagePath));
 
 module.exports = { avatarRouter: router };

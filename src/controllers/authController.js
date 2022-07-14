@@ -4,6 +4,7 @@ const {
   findUserByEmail,
   currentUser,
   changeSubscription,
+  changeAvatar,
 } = require("../services/authServices");
 
 const registrationController = async (req, res) => {
@@ -72,10 +73,25 @@ const changeSubscriptionController = async (req, res) => {
   res.status(200).json({ user });
 };
 
+const changeAvatarController = async (req, res) => {
+  const { user: userId } = req;
+  const filename = req.file.originalname;
+
+  if (!filename) {
+    res.status(400).json({
+      status: "missing file ",
+    });
+  }
+
+  const avatarURL = await changeAvatar({ userId, filename });
+  res.status(200).json({ avatarURL });
+};
+
 module.exports = {
   registrationController,
   loginController,
   logoutController,
   currentUserController,
   changeSubscriptionController,
+  changeAvatarController,
 };

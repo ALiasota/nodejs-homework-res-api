@@ -1,11 +1,18 @@
+const path = require("path");
+const fs = require("fs").promises;
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const gravatar = require("gravatar");
+const { uuid } = require("uuidv4");
+const Jimp = require("jimp");
 const { User } = require("../models/users");
 
 const registration = async ({ email, password }) => {
+  const avatarURL = gravatar.url(email);
   const user = new User({
     email,
     password,
+    avatarURL,
   });
   await user.save();
 };
@@ -37,10 +44,31 @@ const changeSubscription = async (userId, { subscription }) => {
   await User.findByIdAndUpdate({ _id: userId }, { $set: { subscription } });
 };
 
+const changeAvatar = async ({ userId, filename }) => {
+  const orinalFileDir = path.resolve("./tmp");
+  const [, extension] = filename.split(".");
+  const orinalFile = path.resolve("./tmp", filename);
+  const avatarURL = path.resolve("./public/avatars", `${uuid()}.${extension}`);
+  Jimp.read(orinalFile)
+    .then((avatar) => {
+      return avatar
+        .resize(250, 250) // resize
+        .write(avatarURL); // save
+    })
+    .catch((err) => {
+      console.error(err);
+      return err;
+    });
+  await fs.unlink(`${orinalFileDir}/${filename}`);
+  await User.findByIdAndUpdate({ _id: userId }, { $set: { avatarURL } });
+  return avatarURL;
+};
+
 module.exports = {
   registration,
   login,
   findUserByEmail,
   currentUser,
   changeSubscription,
+  changeAvatar,
 };
