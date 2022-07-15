@@ -1,6 +1,6 @@
 require("dotenv").config();
-const app = require("./app");
-const { connectMongoose } = require("./db/connection");
+const app = require("./src/app");
+const { connectMongoose } = require("./src/db/connection");
 const port = process.env.PORT || 3020;
 
 const start = async () => {

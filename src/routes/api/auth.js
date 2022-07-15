@@ -7,12 +7,14 @@ const {
   ChangeUserValidation,
 } = require("../../middlewares/validationMiddleware");
 const { authValidation } = require("../../middlewares/authMiddleware");
+const { avatarMiddleware } = require("../../middlewares/avatarMiddleware");
 const {
   registrationController,
   loginController,
   logoutController,
   currentUserController,
   changeSubscriptionController,
+  changeAvatarController,
 } = require("../../controllers/authController");
 
 router.post(
@@ -32,6 +34,13 @@ router.patch(
   authValidation,
   ChangeUserValidation,
   asyncWrapper(changeSubscriptionController)
+);
+
+router.patch(
+  "/avatars",
+  authValidation,
+  avatarMiddleware.single("avatar"),
+  asyncWrapper(changeAvatarController)
 );
 
 module.exports = { authRouter: router };
