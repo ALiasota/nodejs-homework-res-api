@@ -5,6 +5,8 @@ const {
   currentUser,
   changeSubscription,
   changeAvatar,
+  verification,
+  sendVerificationMail,
 } = require("../services/authServices");
 
 const registrationController = async (req, res) => {
@@ -87,6 +89,41 @@ const changeAvatarController = async (req, res) => {
   res.status(200).json({ avatarURL });
 };
 
+const verificationController = async (req, res) => {
+  const verificationToken = req.params.verificationToken;
+  const user = await verification(verificationToken);
+  if (!user) {
+    res.status(404).json({
+      message: "User not found",
+    });
+  }
+
+  res.status(200).json({ message: "Verification successful" });
+};
+
+const reSendVerificationController = async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    res.status(400).json({
+      message: "missing required field email",
+    });
+  }
+
+  const user = await findUserByEmail(email);
+  if (!user) {
+    res.status(404).json({
+      message: "User not found",
+    });
+  } else if (user.verify === true) {
+    res.status(400).json({
+      message: "Verification has already been passed",
+    });
+  } else {
+    await sendVerificationMail(email, user.verificationToken);
+    res.status(200).json({ message: "Verification email sent" });
+  }
+};
+
 module.exports = {
   registrationController,
   loginController,
@@ -94,4 +131,6 @@ module.exports = {
   currentUserController,
   changeSubscriptionController,
   changeAvatarController,
+  verificationController,
+  reSendVerificationController,
 };

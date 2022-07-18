@@ -15,6 +15,8 @@ const {
   currentUserController,
   changeSubscriptionController,
   changeAvatarController,
+  verificationController,
+  reSendVerificationController,
 } = require("../../controllers/authController");
 
 router.post(
@@ -42,5 +44,9 @@ router.patch(
   avatarMiddleware.single("avatar"),
   asyncWrapper(changeAvatarController)
 );
+
+router.get("/verify/:verificationToken", asyncWrapper(verificationController));
+
+router.post("/verify", asyncWrapper(reSendVerificationController));
 
 module.exports = { authRouter: router };
