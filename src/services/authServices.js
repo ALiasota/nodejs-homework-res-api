@@ -5,29 +5,40 @@ const bcrypt = require("bcrypt");
 const gravatar = require("gravatar");
 const { uuid } = require("uuidv4");
 const Jimp = require("jimp");
+const sgMail = require("@sendgrid/mail");
 const { User } = require("../models/users");
 
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 const registration = async ({ email, password }) => {
+  const verificationToken = uuid();
   const avatarURL = gravatar.url(email);
   const user = new User({
     email,
     password,
     avatarURL,
+    verificationToken,
   });
   await user.save();
-};
-const login = async ({ email, password }) => {
-  const user = await findUserByEmail(email);
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return null;
-  }
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-  return token;
+  await sendVerificationMail(email, verificationToken);
 };
 
 const findUserByEmail = async (email) => {
   const user = await User.findOne({ email });
   return user;
+};
+
+const login = async ({ email, password }) => {
+  const user = await findUserByEmail(email);
+  if (
+    !user ||
+    !(await bcrypt.compare(password, user.password)) ||
+    user.verify === false
+  ) {
+    return null;
+  }
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+  return token;
 };
 
 const currentUser = async (userId) => {
@@ -64,6 +75,29 @@ const changeAvatar = async ({ userId, filename }) => {
   return avatarURL;
 };
 
+const verification = async (verificationToken) => {
+  const user = await User.findOne({ verificationToken });
+  if (!user) {
+    return null;
+  }
+  await User.findByIdAndUpdate(
+    { _id: user._id },
+    { $set: { verificationToken: null, verify: true } }
+  );
+  return user;
+};
+
+const sendVerificationMail = async (email, verificationToken) => {
+  const msg = {
+    to: email,
+    from: "0hitman0@rambler.ru",
+    subject: "Thank you for registration!",
+    text: `Please, confirm your email address http://localhost:${process.env.PORT}/api/users/verify/${verificationToken}`,
+    html: `Please, confirm your email address http://localhost:${process.env.PORT}/api/users/verify/${verificationToken}`,
+  };
+  await sgMail.send(msg);
+};
+
 module.exports = {
   registration,
   login,
@@ -71,4 +105,6 @@ module.exports = {
   currentUser,
   changeSubscription,
   changeAvatar,
+  verification,
+  sendVerificationMail,
 };
